@@ -10,8 +10,8 @@ import torch.optim as optim
 from torch.autograd import Variable
 from torchvision import datasets, transforms
 
-from utils import generator as g
-from utils import discriminator as d
+from networks import generator as g
+from networks import discriminator as d
 
 
 # Argparse
@@ -61,11 +61,6 @@ transform = transforms.Compose([
         std=(0.5, 0.5, 0.5))
 ])
 
-# TODO: transform
-#dataset = DrawDataset('/data/turfu/binary/', transform=Rasterizer())
-#dataset = dataset.select(['banana', 'cat', 'dog', 'apple'])
-#dataset = dataset.reduce(5000, seed=1234)
-
 train_loader = torch.utils.data.DataLoader(
     datasets.MNIST('../data',
                    train=True,
@@ -81,11 +76,11 @@ train_loader = torch.utils.data.DataLoader(
 ##########################
 # Generator
 G = g.generator()
-G.cuda()
+#G.cuda()
 
 # Discriminator
 D = d.discriminator()
-D.cuda()
+#D.cuda()
 
 # Loss criterion: Binary Cross Entropy
 criterion = nn.BCELoss()
@@ -115,9 +110,13 @@ for epoch in range(train_epoch):
         y_fake = torch.zeros(mini_batch)
 
         # Stock the value into an autograd Variable
-        x = Variable(x.cuda())
-        y_real = Variable(y_real.cuda())
-        y_fake = Variable(y_fake.cuda())
+        x = Variable(x)
+        y_real = Variable(y_real)
+        y_fake = Variable(y_fake)
+
+        #x = Variable(x.cuda())
+        #y_real = Variable(y_real.cuda())
+        #y_fake = Variable(y_fake.cuda())
 
 
         # Avoid gradient to accumulate
@@ -127,7 +126,8 @@ for epoch in range(train_epoch):
         D_real_loss = criterion(D_result, y_real)
 
         z = torch.randn(mini_batch, 100)
-        z = Variable(z.cuda())
+        z = Variable(z)
+        # z = Variable(z.cuda())
         G_result = G(z)
 
         D_result = D(G_result)
@@ -147,8 +147,11 @@ for epoch in range(train_epoch):
         z = torch.randn(mini_batch, 100)
         y = torch.ones(mini_batch)
 
-        z = Variable(z.cuda())
-        y = Variable(y.cuda())
+        z = Variable(z)
+        y = Variable(y)
+
+        #z = Variable(z.cuda())
+        #y = Variable(y.cuda())
 
         G_result = G(z)
         D_result = D(G_result)
@@ -166,12 +169,13 @@ for epoch in range(train_epoch):
     ))
 
     z = torch.randn(mini_batch, 100)
-    z = Variable(z.cuda())
+    z = Variable(z)
+    #z = Variable(z.cuda())
     G_result = G(z)
     plt.imshow(G_result[0].cpu().data.view(28, 28).numpy(),
                cmap='gray')
     plt.title('Digit' + str((epoch + 1)))
-    plt.savefig('result/img/digit'+ str(epoch + 1) +'.png')
+    plt.savefig('results/generated_img/digit'+ str(epoch + 1) +'.png')
 
 # Save the network
 save_generator(G)
